@@ -108,6 +108,18 @@ def split_rsync_cmd(cmd: str) -> list:
     return shlex.split(cmd)
 
 
+# If shlex.join is not found (Python < 3.8), implement it (the implementation
+# is taken "as is" from stdlib), otherwise just wrap it.
+if hasattr(shlex, 'join'):
+    def join_and_quote(split_command: list[str]) -> str:
+        """Return a shell-escaped string from *split_command*."""
+        return shlex.join(split_command)
+else:
+    def join_and_quote(split_command: list[str]) -> str:
+        """Return a shell-escaped string from *split_command*."""
+        return ' '.join(shlex.quote(arg) for arg in split_command)
+
+
 def _under_valgrind():
     """True when the runner wrapped rsync in valgrind (runtests.py --valgrind).
 
@@ -918,7 +930,7 @@ def rsync_path_arg(cmd: str = None) -> str:
     ('valgrind ... /build/rsync') must stay several words.  Splitting and
     re-joining with shlex gives both: each word is quoted only if it needs it.
     """
-    return shlex.join(split_rsync_cmd(RSYNC_PEER if cmd is None else cmd))
+    return join_and_quote(split_rsync_cmd(RSYNC_PEER if cmd is None else cmd))
 
 
 def rsync_argv(*args: str) -> list:
