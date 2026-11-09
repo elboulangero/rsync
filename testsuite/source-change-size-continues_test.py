@@ -172,8 +172,11 @@ later.write_text('later file must still transfer\n')
 shim = build_shim()
 mark = SCRATCHDIR / 'source_shrink_read.mark'
 load_mark = SCRATCHDIR / 'source_shrink_load.mark'
-mark.unlink(missing_ok=True)
-load_mark.unlink(missing_ok=True)
+try:
+    mark.unlink()
+    load_mark.unlink()
+except FileNotFoundError:
+    pass
 env = os.environ.copy()
 env['LD_PRELOAD'] = str(shim)
 env['RSYNC_SHRINK_TARGET'] = str(changing.resolve())

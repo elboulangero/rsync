@@ -117,8 +117,11 @@ assert_same("test 3 update",
 
 
 # Test 4: --backup with directory symlinks.
-(home / 'real-dir' / 'file').unlink()
-(home / 'real-dir' / 'file~').unlink(missing_ok=True)
+try:
+    (home / 'real-dir' / 'file').unlink()
+    (home / 'real-dir' / 'file~').unlink()
+except FileNotFoundError:
+    pass
 make_testfile(srcbase / 'dir' / 'file')
 
 push('-KRlptv', 'dir/file', 'localhost:', label="test 4 initial")
@@ -139,8 +142,11 @@ if (home / 'real-dir' / 'file~').read_bytes() != old_content:
 
 
 # Test 5: --inplace.
-(home / 'real-dir' / 'file').unlink()
-(home / 'real-dir' / 'file~').unlink(missing_ok=True)
+try:
+    (home / 'real-dir' / 'file').unlink()
+    (home / 'real-dir' / 'file~').unlink()
+except FileNotFoundError:
+    pass
 make_testfile(srcbase / 'dir' / 'file')
 
 push('-KRlptv', '--inplace', 'dir/file', 'localhost:', label="test 5 initial")
@@ -170,7 +176,10 @@ assert_same("test 6 update", srcbase / 'topfile', home / 'topfile')
 
 
 # Test 7: --partial-dir with protocol < 29.
-(home / 'real-dir' / 'file').unlink(missing_ok=True)
+try:
+    (home / 'real-dir' / 'file').unlink()
+except FileNotFoundError:
+    pass
 make_testfile(srcbase / 'dir' / 'file')
 
 push('-KRlptv', '--protocol=28', '--partial-dir=.rsync-partial',
@@ -187,7 +196,10 @@ assert_same("test 7 update", srcbase / 'dir' / 'file', home / 'real-dir' / 'file
 
 
 # Test 8: protocol < 29 basic update.
-(home / 'real-dir' / 'file').unlink(missing_ok=True)
+try:
+    (home / 'real-dir' / 'file').unlink()
+except FileNotFoundError:
+    pass
 make_testfile(srcbase / 'dir' / 'file')
 
 push('-KRlptv', '--protocol=28', 'dir/file', 'localhost:', label="test 8 initial")
