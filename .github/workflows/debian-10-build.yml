@@ -1,0 +1,61 @@
+name: Test rsync on Debian 10 Buster
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '.github/workflows/*.yml'
+      - '!.github/workflows/debian-10-build.yml'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '.github/workflows/*.yml'
+      - '!.github/workflows/debian-10-build.yml'
+  schedule:
+    - cron: '42 8 * * *'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:buster
+    name: Test rsync on Debian 10 Buster
+    steps:
+    - name: populate apt cache
+      run: apt-get update
+    - name: install git
+      # actions/checkout needs git in the container before the checkout step.
+      run: apt-get -y install git
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: prep
+      run: |
+        apt-get -y install libacl1-dev libpopt-dev liblz4-dev zlib1g-dev libssl-dev python3:native python3-cmarkgfm:native acl attr
+    - name: configure
+      run: ./configure --with-rrsync --with-included-zlib=no --disable-md5-asm --disable-xxhash --disable-zstd
+    - name: make
+      run: make
+    - name: install
+      run: make install
+    - name: info
+      run: rsync --version
+    - name: check
+      run: echo TODO
+    - name: save artifact
+      uses: actions/upload-artifact@v4
+      with:
+        retention-days: 45
+        name: debian-10-bin
+        path: |
+          rsync
+          rsync-ssl
+          rsync.1
+          rsync-ssl.1
+          rsyncd.conf.5
+          rrsync.1
+          rrsync
