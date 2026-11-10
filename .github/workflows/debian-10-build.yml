@@ -17,6 +17,7 @@ on:
       - '!.github/workflows/debian-10-build.yml'
   schedule:
     - cron: '42 8 * * *'
+  workflow_dispatch:
 
 jobs:
   test:
