@@ -108,8 +108,8 @@ def split_rsync_cmd(cmd: str) -> list:
     return shlex.split(cmd)
 
 
-# If shlex.join is not found (Python < 3.8), implement it (the implementation
-# is taken "as is" from stdlib), otherwise just wrap it.
+# If shlex.join doesn't exist (Python < 3.8), implement it. The implementation
+# is taken "as is" from stdlib. Otherwise this function is just a wrapper.
 if hasattr(shlex, 'join'):
     def join_and_quote(split_command: list[str]) -> str:
         """Return a shell-escaped string from *split_command*."""
@@ -118,6 +118,20 @@ else:
     def join_and_quote(split_command: list[str]) -> str:
         """Return a shell-escaped string from *split_command*."""
         return ' '.join(shlex.quote(arg) for arg in split_command)
+
+
+# If Path.unlink doesn't accept the missing_ok argument, fall back to checking
+# the exception returned. For simplicity we check the Python version instead of
+# inspecting the signature of the function.
+if sys.version_info < (3, 8):
+    def unlink_missing_ok(file_path: Path) -> None:
+        try:
+            file_path.unlink()
+        except FileNotFoundError:
+            pass
+else:
+    def unlink_missing_ok(file_path: Path) -> None:
+        file_path.unlink(missing_ok=True)
 
 
 def _under_valgrind():
